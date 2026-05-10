@@ -3,6 +3,7 @@ package com.example.TaskManagement.exception;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -46,6 +48,29 @@ public class GlobalExceptionHandler {
 		for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
 			fieldErrors.put(fe.getField(), fe.getDefaultMessage());
 		}
+		ApiErrorResponse body = ApiErrorResponse.builder()
+				.timestamp(Instant.now())
+				.status(HttpStatus.BAD_REQUEST.value())
+				.error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+				.message("Validation failed")
+				.path(request.getRequestURI())
+				.fieldErrors(fieldErrors)
+				.build();
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+	}
+
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ResponseEntity<ApiErrorResponse> handleConstraintViolation(ConstraintViolationException ex,
+			HttpServletRequest request) {
+		Map<String, String> fieldErrors = ex.getConstraintViolations().stream()
+				.collect(Collectors.toMap(
+						violation -> {
+							String[] parts = violation.getPropertyPath().toString().split("\\.");
+							return parts.length > 0 ? parts[parts.length - 1] : "request";
+						},
+						violation -> violation.getMessage(),
+						(existing, replacement) -> existing));
+
 		ApiErrorResponse body = ApiErrorResponse.builder()
 				.timestamp(Instant.now())
 				.status(HttpStatus.BAD_REQUEST.value())

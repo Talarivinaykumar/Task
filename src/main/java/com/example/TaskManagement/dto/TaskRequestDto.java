@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import com.example.TaskManagement.model.TaskStatus;
 import com.example.TaskManagement.validation.ValidationGroups.OnCreate;
 import com.example.TaskManagement.validation.ValidationGroups.OnUpdate;
+import com.example.TaskManagement.validation.ValidDueDate;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -27,6 +28,7 @@ public class TaskRequestDto {
 	@Size(max = 2000, message = "Description must be at most 2000 characters")
 	private String description;
 
+	@ValidDueDate
 	private LocalDate dueDate;
 
 	/**
