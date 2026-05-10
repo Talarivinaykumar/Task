@@ -23,6 +23,7 @@ import com.example.TaskManagement.service.TaskService;
 import com.example.TaskManagement.validation.ValidationGroups.OnCreate;
 import com.example.TaskManagement.validation.ValidationGroups.OnUpdate;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,8 @@ public class TaskController {
 	}
 
 	@PostMapping
-	public ResponseEntity<TaskResponseDto> createTask(@Validated(OnCreate.class) @RequestBody TaskRequestDto request) {
+	public ResponseEntity<TaskResponseDto> createTask(
+			@Validated(OnCreate.class) @RequestBody @Valid TaskRequestDto request) {
 		TaskResponseDto created = taskService.create(request);
 		URI location = URI.create("/tasks/" + created.getId());
 		return ResponseEntity.created(location).body(created);
@@ -57,7 +59,7 @@ public class TaskController {
 
 	@PutMapping("/{id}")
 	public ResponseEntity<TaskResponseDto> updateTask(@PathVariable Long id,
-			@Validated(OnUpdate.class) @RequestBody TaskRequestDto request) {
+			@Validated(OnUpdate.class) @RequestBody @Valid TaskRequestDto request) {
 		return ResponseEntity.ok(taskService.update(id, request));
 	}
 

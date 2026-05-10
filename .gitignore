@@ -31,3 +31,20 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Runtime / OS ###
+*.log
+logs/
+out/
+.DS_Store
+Thumbs.db
+
+### Environment / Secrets ###
+.env
+.env.*
+!.env.example
+
+### Postman ###
+# Keep collections versioned, ignore local environments/secrets
+postman/*environment*.json
+postman/*.postman_environment.json

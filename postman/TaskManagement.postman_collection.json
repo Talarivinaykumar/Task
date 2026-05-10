@@ -1,0 +1,138 @@
+{
+	"info": {
+		"name": "Task Management API",
+		"description": "Spring Boot Task API with JWT. Run **Auth → Login** first; the test script stores `accessToken` for the Tasks folder (Bearer auth).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:8080" },
+		{ "key": "accessToken", "value": "" },
+		{ "key": "taskId", "value": "1" }
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login (get JWT)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"  const json = pm.response.json();",
+									"  pm.collectionVariables.set('accessToken', json.accessToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"demo\",\n  \"password\": \"demo123\"\n}"
+						},
+						"url": "{{baseUrl}}/auth/login",
+						"description": "Returns a Bearer JWT. Default demo user from `application.properties`."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tasks",
+			"auth": {
+				"type": "bearer",
+				"bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+			},
+			"item": [
+				{
+					"name": "List tasks (pagination + filter)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/tasks?page=0&size=20&status=PENDING",
+						"description": "200 OK — paginated list. Omit `status` to include all statuses."
+					},
+					"response": []
+				},
+				{
+					"name": "Get task by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/tasks/{{taskId}}",
+						"description": "200 OK or 404 if missing."
+					},
+					"response": []
+				},
+				{
+					"name": "Create task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"  const json = pm.response.json();",
+									"  pm.collectionVariables.set('taskId', String(json.id));",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Write integration tests\",\n  \"description\": \"Cover service and web layers\",\n  \"dueDate\": \"2026-05-15\",\n  \"status\": \"IN_PROGRESS\"\n}"
+						},
+						"url": "{{baseUrl}}/tasks",
+						"description": "201 CREATED — `status` optional (defaults to PENDING)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update task (full replace)",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Write integration tests\",\n  \"description\": \"Updated scope\",\n  \"dueDate\": \"2026-05-18\",\n  \"status\": \"IN_PROGRESS\"\n}"
+						},
+						"url": "{{baseUrl}}/tasks/{{taskId}}",
+						"description": "200 OK — `status` is required on update."
+					},
+					"response": []
+				},
+				{
+					"name": "Mark task completed",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": "{{baseUrl}}/tasks/{{taskId}}/complete",
+						"description": "200 OK — sets status to COMPLETED only. 400 if already completed."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete task",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "{{baseUrl}}/tasks/{{taskId}}",
+						"description": "204 NO CONTENT on success; 404 if not found."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

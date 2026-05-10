@@ -1,0 +1,8 @@
+services:
+  task-management-api:
+    build: .
+    image: task-management-api:local
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_APPLICATION_NAME: TaskManagement
